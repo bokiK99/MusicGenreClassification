@@ -1,0 +1,140 @@
+import json
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import classification_report, confusion_matrix
+import joblib
+
+def load_dataset(json_path):
+    with open(json_path, "r") as fp:
+        data = json.load(fp)
+    X_mfcc = np.array(data["mfcc"])
+    X_chroma = np.array(data["chroma"])
+    X_spectral_centroid = np.array(data["spectral_centroid"])
+    X_spectral_bandwidth = np.array(data["spectral_bandwidth"])
+    X_zcr = np.array(data["zcr"])
+    X_spectral_contrast = np.array(data["spectral_contrast"])
+    X_tempo = np.array(data["tempo"]).reshape(-1, 1)
+    y = np.array(data["labels"])
+    mappings = data["mappings"]
+    return (X_mfcc, X_chroma, X_spectral_centroid, X_spectral_bandwidth,
+            X_zcr, X_spectral_contrast, X_tempo, y, mappings)
+
+def extract_stats(features):
+    mean_vals = np.mean(features, axis=2)
+    std_vals = np.std(features, axis=2)
+    max_vals = np.max(features, axis=2)
+    min_vals = np.min(features, axis=2)
+    median_vals = np.median(features, axis=2)
+    return np.column_stack([mean_vals, std_vals, max_vals, min_vals, median_vals])
+
+# File pathovi
+train_path = "C:/Users/bokib/MMS_KV/train_v3.json"
+val_path = "C:/Users/bokib/MMS_KV/validation_v2.json"
+test_path = "C:/Users/bokib/MMS_KV/test_v2.json"
+
+# Ucitavanje dataseta
+(X_mfcc_train, X_chroma_train, X_spectral_centroid_train, X_spectral_bandwidth_train,
+ X_zcr_train, X_spectral_contrast_train, X_tempo_train, y_train, mappings) = load_dataset(train_path)
+
+(X_mfcc_val, X_chroma_val, X_spectral_centroid_val, X_spectral_bandwidth_val,
+ X_zcr_val, X_spectral_contrast_val, X_tempo_val, y_val, _) = load_dataset(val_path)
+
+(X_mfcc_test, X_chroma_test, X_spectral_centroid_test, X_spectral_bandwidth_test,
+ X_zcr_test, X_spectral_contrast_test, X_tempo_test, y_test, _) = load_dataset(test_path)
+
+# Ekstrakcija znacajki
+mfcc_features_train = extract_stats(X_mfcc_train)
+chroma_features_train = extract_stats(X_chroma_train)
+centroid_features_train = extract_stats(X_spectral_centroid_train)
+bandwidth_features_train = extract_stats(X_spectral_bandwidth_train)
+zcr_features_train = extract_stats(X_zcr_train)
+contrast_features_train = extract_stats(X_spectral_contrast_train)
+
+mfcc_features_val = extract_stats(X_mfcc_val)
+chroma_features_val = extract_stats(X_chroma_val)
+centroid_features_val = extract_stats(X_spectral_centroid_val)
+bandwidth_features_val = extract_stats(X_spectral_bandwidth_val)
+zcr_features_val = extract_stats(X_zcr_val)
+contrast_features_val = extract_stats(X_spectral_contrast_val)
+
+mfcc_features_test = extract_stats(X_mfcc_test)
+chroma_features_test = extract_stats(X_chroma_test)
+centroid_features_test = extract_stats(X_spectral_centroid_test)
+bandwidth_features_test = extract_stats(X_spectral_bandwidth_test)
+zcr_features_test = extract_stats(X_zcr_test)
+contrast_features_test = extract_stats(X_spectral_contrast_test)
+
+X_train = np.hstack([
+    mfcc_features_train,
+    chroma_features_train,
+    centroid_features_train,
+    bandwidth_features_train,
+    zcr_features_train,
+    contrast_features_train,
+    X_tempo_train
+])
+
+X_val = np.hstack([
+    mfcc_features_val,
+    chroma_features_val,
+    centroid_features_val,
+    bandwidth_features_val,
+    zcr_features_val,
+    contrast_features_val,
+    X_tempo_val
+])
+
+X_test = np.hstack([
+    mfcc_features_test,
+    chroma_features_test,
+    centroid_features_test,
+    bandwidth_features_test,
+    zcr_features_test,
+    contrast_features_test,
+    X_tempo_test
+])
+
+print(f"Final combined shape: {X_train.shape}")
+
+# Skaliranje
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_val_scaled = scaler.transform(X_val)
+X_test_scaled = scaler.transform(X_test)
+
+# Odredjivanje hiperparametara
+knn = KNeighborsClassifier(
+    n_neighbors=13,
+    weights='distance',
+    metric='manhattan'
+)
+knn.fit(X_train_scaled, y_train)
+
+# Preciznost na validacijskom setu
+val_acc = knn.score(X_val_scaled, y_val)
+print(f"\nValidation set accuracy: {val_acc:.4f}")
+
+# Preciznost na testnom setu
+y_pred = knn.predict(X_test_scaled)
+test_acc = knn.score(X_test_scaled, y_test)
+print(f"Test set accuracy: {test_acc:.4f}")
+
+print("\nTest set performance:")
+print(classification_report(y_test, y_pred, target_names=mappings))
+
+# Matrica zabune
+cm = confusion_matrix(y_test, y_pred, normalize='true')
+plt.figure(figsize=(10, 8))
+sns.heatmap(cm, annot=True, fmt='.2f', cmap='Blues', xticklabels=mappings, yticklabels=mappings)
+plt.title('KNN Confusion Matrix (Best Params)')
+plt.ylabel('True Label')
+plt.xlabel('Predicted Label')
+plt.tight_layout()
+plt.savefig('knn_confusion_matrix_best_params.png')
+plt.show()
+
+# Spremi KNN model
+joblib.dump(knn, 'knn_model.save')
