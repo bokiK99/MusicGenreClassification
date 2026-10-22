@@ -49,9 +49,7 @@ The GUI invokes Python via `System.Diagnostics.Process` and reads the script's s
 
 The classifier predicts one of the following labels (as stored in `mappings.json`):
 
-`classical`, `disco`, `doesent belong anywhere`, `hiphop`, `jazz`, `metal`, `pop`, `reggae`, `rock`.
-
-> **Note:** `doesent belong anywhere` is the label used in the project for the additional class of artificially generated noise samples. Its spelling is preserved for compatibility with the saved class mapping. The noise-generation procedure is not available in the supplied project sources.
+`classical`, `disco`, `doesn't belong anywhere`, `hiphop`, `jazz`, `metal`, `pop`, `reggae`, `rock`.
 
 ## Dataset and preprocessing
 
@@ -108,19 +106,19 @@ The confusion matrices below are **row-normalized**: rows represent true classes
 
 ### Random Forest
 
-![Normalized Random Forest confusion matrix](images/rf_confusion_matrix.png)
+![Normalized Random Forest confusion matrix](Images/rf_confusion_matrix.png)
 
 ### SVM
 
-![Normalized SVM confusion matrix](images/svm_confusion_matrix.png)
+![Normalized SVM confusion matrix](Images/svm_confusion_matrix.png)
 
 ### Deep Neural Network
 
-![Normalized neural network confusion matrix](images/dnn_confusion_matrix.png)
+![Normalized neural network confusion matrix](Images/fcnn_confusion_matrix.png)
 
 ### KNN
 
-![Normalized KNN confusion matrix](images/knn_confusion_matrix.png)
+![Normalized KNN confusion matrix](Images/knn_confusion_matrix.png)
 
 **Observations:** The noise class is detected with high recall across all four models. Confusion between some music genres—particularly disco, pop, rock, and reggae—remains more challenging. The displayed percentages should be interpreted as results from this project's evaluation, not as a general benchmark on the original GTZAN dataset.
 
