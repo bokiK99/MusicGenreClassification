@@ -134,6 +134,16 @@ The GUI contains:
 
 The result appears directly in the application window. A screenshot of the running application can be added here later.
 
+## GUI screenshots
+
+### Screenshot 1
+![Screenshot 1](Images/example1.jpeg)
+
+### Screenshot 2
+![Screenshot 2](Images/example2.jpeg)
+
+### Screenshot 3
+![Screenshot 3](Images/example3.jpeg)
 ## Getting started
 
 ### Requirements
